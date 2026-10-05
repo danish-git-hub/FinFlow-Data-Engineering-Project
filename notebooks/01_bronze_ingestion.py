@@ -111,16 +111,8 @@ def write_bronze_table(df, table_name, source_file):
 
 # COMMAND ----------
 
-print(add_bronze_metadata)
-
-# COMMAND ----------
-
 # MAGIC %md
 # MAGIC Test the writing function
-
-# COMMAND ----------
-
-print(write_bronze_table)
 
 # COMMAND ----------
 
@@ -167,6 +159,7 @@ transactions_df = spark.read.json(
 )
 
 # 6. Exchange rates
+# Prepared/mock exchange-rate dataset for the project
 exchange_rates_df = (
     spark.read
     .option("header", True)

@@ -1,0 +1,1 @@
+Add selected Databricks Job, audit, idempotency and Snowflake validation screenshots here. Before committing, crop or redact account identifiers, email addresses, workspace URLs, credentials and other sensitive information.

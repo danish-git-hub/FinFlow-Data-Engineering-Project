@@ -1,4 +1,4 @@
-# FinFlow — End-to-End Financial Data Engineering & Analytics
+# FinFlow: End-to-End Financial Data Engineering & Analytics
 
 FinFlow is an educational end-to-end Data Engineering capstone that processes financial-services datasets with PySpark and Databricks, applies a Bronze/Silver/Gold Medallion Architecture, and publishes curated Gold datasets to Snowflake for SQL analytics.
 

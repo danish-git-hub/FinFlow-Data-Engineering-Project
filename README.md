@@ -1,6 +1,36 @@
-# FinFlow: End-to-End Financial Data Engineering & Analytics
+# FinFlow — End-to-End Financial Data Engineering & Analytics Platform
 
-FinFlow is an educational end-to-end Data Engineering capstone that processes financial-services datasets with PySpark and Databricks, applies a Bronze/Silver/Gold Medallion Architecture, and publishes curated Gold datasets to Snowflake for SQL analytics.
+FinFlow is an educational end-to-end Data Engineering capstone that demonstrates how financial-services data can be ingested, validated, transformed, modelled, and prepared for analytics. The project uses Python, PySpark, Apache Spark, Databricks, Delta Lake, SQL, Snowflake, Azure storage concepts, and Databricks Workflows.
+
+
+## 🎯 Business Problem
+
+A fictional digital financial-services company, FinFlow, receives customer, account, branch, loan, transaction, and exchange-rate datasets.
+
+The goal is to build a repeatable data platform that:
+
+- ingests raw source files
+- standardizes and validates data
+- isolates invalid records
+- creates analytics-ready fact and dimension tables
+- supports incremental transaction ingestion
+- maintains audit and reconciliation information
+- publishes curated data to Snowflake
+- enables SQL-based business analysis
+
+## 📊 Key Capabilities
+
+- Bronze → Silver → Gold Medallion Architecture
+- PySpark and Spark SQL transformations
+- Data-quality validation and quarantine
+- Bronze-to-Silver reconciliation
+- Incremental file ingestion
+- File-level and record-level idempotency
+- Audit logging
+- Dimensional modelling
+- Snowflake staged loading with COPY INTO
+- Databricks Workflow scheduling
+- Business-focused SQL analytics
 
 ## Project architecture
 
@@ -130,6 +160,11 @@ These are results from the tested workspace state, not guaranteed results from a
 - A relational database source is not integrated into the active pipeline.
 - Snowflake transfer uses manual CSV export, stage upload and `COPY INTO`.
 - Production-grade multi-table transactions, comprehensive automated tests, CI/CD and advanced monitoring are outside this educational implementation.
+
+
+## 🔐 Security
+
+The repository intentionally does not contain passwords, access keys, connection strings, private keys, .env files, or raw source datasets. Environment-specific credentials should be supplied through appropriate secret-management mechanisms rather than committed to Git.
 
 ## Learning outcomes
 

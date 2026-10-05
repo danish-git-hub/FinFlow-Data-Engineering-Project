@@ -823,17 +823,17 @@ print("Existing quarantine records:", old_quarantine_count)
 print("Updated quarantine records:", total_quarantine_count)
 
 # Safety checks
-assert new_count == 11150, (
-    f"Expected 11150 new violations, found {new_count}"
+bronze_transaction_count = spark.table(
+    "workspace.finflow_bronze.transactions"
+).count()
+
+assert valid_count + total_quarantine_count == bronze_transaction_count, (
+    f"Reconciliation failed: "
+    f"Silver ({valid_count}) + Quarantine ({total_quarantine_count}) "
+    f"!= Bronze ({bronze_transaction_count})"
 )
 
-assert valid_count == 108610, (
-    f"Expected 108610 valid records, found {valid_count}"
-)
-
-assert total_quarantine_count == 11410, (
-    f"Expected 11410 quarantine records, found {total_quarantine_count}"
-)
+print("Transaction temporal validation and reconciliation PASSED")
 
 # 8. Write quarantine FIRST to avoid losing rejected records
 updated_quarantine.write \
@@ -952,6 +952,14 @@ print("Valid loans:", valid_count)
 print("Quarantined loans:", quarantine_count)
 print("Total reconciled:", valid_count + quarantine_count)
 
-assert valid_count + quarantine_count == 5000
+bronze_loan_count = spark.table(
+    "workspace.finflow_bronze.loans"
+).count()
+
+assert valid_count + quarantine_count == bronze_loan_count, (
+    f"Loan reconciliation failed: "
+    f"Valid ({valid_count}) + Quarantine ({quarantine_count}) "
+    f"!= Bronze ({bronze_loan_count})"
+)
 
 print("LOAN RECONCILIATION PASSED")

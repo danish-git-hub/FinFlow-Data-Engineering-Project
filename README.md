@@ -4,23 +4,11 @@ FinFlow is an educational end-to-end Data Engineering capstone that processes fi
 
 ## Project architecture
 
-```mermaid
-flowchart TD
-    A[CSV source datasets] --> B[Databricks Volume]
-    J[JSON transaction dataset] --> B
-    B --> C[Bronze Delta tables]
-    C --> D[Silver cleaning and validation]
-    D --> E[Gold facts, dimensions and summaries]
-    E --> F[CSV export from Databricks]
-    F --> G[Snowflake internal stage]
-    G --> H[COPY INTO Snowflake tables]
-    H --> I[SQL analytics and reporting]
-    K[Databricks Workflows] -. orchestrates .-> C
-    K -. orchestrates .-> D
-    K -. orchestrates .-> E
-    L[Audit log, quarantine and reconciliation] -. monitors .-> D
-    L -. monitors .-> E
-```
+![FinFlow Architecture](architecture/finflow_architecture.png)
+
+**Architecture flow:** CSV/JSON → Databricks Bronze → Silver → Gold → Snowflake → SQL Analytics
+
+The pipeline is orchestrated using Databricks Workflows and includes incremental ingestion, data-quality validation, quarantine handling, audit logging, reconciliation, and idempotency validation.
 
 **Storage implementation note:** Azure Data Lake Storage Gen2 was configured as a landing-zone resource, but the Databricks Free Edition pipeline in this repository reads source files from Databricks Volumes. It does not implement a direct ADLS-to-Databricks connection.
 

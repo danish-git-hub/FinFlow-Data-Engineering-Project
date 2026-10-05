@@ -1,280 +1,121 @@
 # Databricks notebook source
-# Export the Gold fact table as CSV
-
-fact_df = spark.table(
-    "workspace.finflow_gold.fact_transaction"
-)
-
-export_path = (
-    "/Volumes/workspace/default/finflow_raw/"
-    "finflow_snowflake_export/fact_transaction"
-)
-
-(
-    fact_df
-    .coalesce(1)
-    .write
-    .mode("overwrite")
-    .option("header", "true")
-    .option("encoding", "UTF-8")
-    .csv(export_path)
-)
-
-print("Fact transaction export completed!")
-print("Records exported:", fact_df.count())
-print("Export location:", export_path)
+# MAGIC %md
+# MAGIC # FinFlow — Snowflake Export
+# MAGIC
+# MAGIC Exports the FinFlow Gold-layer tables from Databricks to CSV files
+# MAGIC in a Databricks Volume.
+# MAGIC
+# MAGIC These files are then uploaded to a Snowflake stage and loaded into
+# MAGIC the corresponding Snowflake Gold tables using `COPY INTO`.
+# MAGIC
+# MAGIC This notebook intentionally uses a simple CSV-based transfer because
+# MAGIC the capstone uses manual Snowflake loading rather than a direct
+# MAGIC Databricks-to-Snowflake connector.
 
 # COMMAND ----------
 
-export_path = (
+# ============================================================
+# 1. Configuration
+# ============================================================
+
+GOLD_DB = "workspace.finflow_gold"
+
+EXPORT_BASE = (
     "/Volumes/workspace/default/finflow_raw/"
-    "finflow_snowflake_export/fact_transaction"
+    "finflow_snowflake_export"
 )
 
-files = dbutils.fs.ls(export_path)
+# Gold tables exported to Snowflake.
+gold_tables = [
+    "fact_transaction",
+    "dim_customer",
+    "dim_account",
+    "dim_branch",
+    "dim_date",
+    "customer_analytics",
+    "branch_performance",
+    "daily_transaction_summary",
+    "loan_portfolio_summary"
+]
 
-for file in files:
-    print(file.name, file.size, file.path)
+print("Gold tables configured for export:", len(gold_tables))
 
 # COMMAND ----------
 
-table_name = "dim_customer"
+# ============================================================
+# 2. Reusable Gold Table Export Function
+# ============================================================
 
-df = spark.table(
-    f"workspace.finflow_gold.{table_name}"
-)
+def export_gold_table(table_name):
+    """
+    Export one Databricks Gold table as a single CSV part file.
 
-export_path = (
-    "/Volumes/workspace/default/finflow_raw/"
-    f"finflow_snowflake_export/{table_name}"
-)
+    coalesce(1) is used here because the capstone uses manual CSV
+    transfer into Snowflake and the Gold datasets are manageable in size.
+    For large production datasets, a single partition should be avoided.
+    """
 
-(
-    df.coalesce(1)
-    .write
-    .mode("overwrite")
-    .option("header", "true")
-    .option("encoding", "UTF-8")
-    .csv(export_path)
-)
+    table_full_name = f"{GOLD_DB}.{table_name}"
+    export_path = f"{EXPORT_BASE}/{table_name}"
 
-print("Table:", table_name)
-print("Records:", df.count())
-print("Export completed!")
+    df = spark.table(table_full_name)
 
-# COMMAND ----------
+    record_count = df.count()
 
-# Inspect the original Gold customer dimension
+    (
+        df.coalesce(1)
+        .write
+        .mode("overwrite")
+        .option("header", "true")
+        .option("encoding", "UTF-8")
+        .csv(export_path)
+    )
 
-df = spark.table(
-    "workspace.finflow_gold.dim_customer"
-)
-
-print("Total columns:", len(df.columns))
-print("Column names:", df.columns)
-
-df.printSchema()
+    print(f"Table: {table_name}")
+    print(f"Records: {record_count:,}")
+    print(f"Export location: {export_path}")
+    print("-" * 60)
 
 # COMMAND ----------
 
-export_path = (
-    "/Volumes/workspace/default/finflow_raw/"
-    "finflow_snowflake_export/dim_customer"
-)
+# ============================================================
+# 3. Export All Gold Tables
+# ============================================================
 
-files = dbutils.fs.ls(export_path)
+for table_name in gold_tables:
+    export_gold_table(table_name)
 
-csv_file = [
-    f.path for f in files
-    if f.name.endswith(".csv")
-][0]
-
-print("CSV header:")
-print(dbutils.fs.head(csv_file, 2000))
+print("All Gold tables exported successfully.")
 
 # COMMAND ----------
 
-table_name = "dim_account"
-
-df = spark.table(
-    f"workspace.finflow_gold.{table_name}"
-)
-
-export_path = (
-    "/Volumes/workspace/default/finflow_raw/"
-    f"finflow_snowflake_export/{table_name}"
-)
-
-(
-    df.coalesce(1)
-    .write
-    .mode("overwrite")
-    .option("header", "true")
-    .option("encoding", "UTF-8")
-    .csv(export_path)
-)
-
-print("Table:", table_name)
-print("Records:", df.count())
-print("Export completed!")
+# MAGIC %md
+# MAGIC ## 4. Verify Export Locations
+# MAGIC
+# MAGIC List the generated files for each Gold table so the CSV part file
+# MAGIC can be identified before uploading it to Snowflake.
 
 # COMMAND ----------
 
-table_name = "dim_branch"
+for table_name in gold_tables:
+    export_path = f"{EXPORT_BASE}/{table_name}"
 
-df = spark.table(
-    f"workspace.finflow_gold.{table_name}"
-)
-
-export_path = (
-    "/Volumes/workspace/default/finflow_raw/"
-    f"finflow_snowflake_export/{table_name}"
-)
-
-(
-    df.coalesce(1)
-    .write
-    .mode("overwrite")
-    .option("header", "true")
-    .option("encoding", "UTF-8")
-    .csv(export_path)
-)
-
-print("Table:", table_name)
-print("Records:", df.count())
-print("Export completed!")
+    print(f"\n{table_name}:")
+    for file_info in dbutils.fs.ls(export_path):
+        print(
+            f"  {file_info.name} | "
+            f"{file_info.size:,} bytes | "
+            f"{file_info.path}"
+        )
 
 # COMMAND ----------
 
-table_name = "dim_date"
-
-df = spark.table(
-    f"workspace.finflow_gold.{table_name}"
-)
-
-export_path = (
-    "/Volumes/workspace/default/finflow_raw/"
-    f"finflow_snowflake_export/{table_name}"
-)
-
-(
-    df.coalesce(1)
-    .write
-    .mode("overwrite")
-    .option("header", "true")
-    .option("encoding", "UTF-8")
-    .csv(export_path)
-)
-
-print("Table:", table_name)
-print("Records:", df.count())
-print("Columns:", df.columns)
-print("Export completed!")
-
-# COMMAND ----------
-
-table_name = "customer_analytics"
-
-df = spark.table(
-    f"workspace.finflow_gold.{table_name}"
-)
-
-export_path = (
-    "/Volumes/workspace/default/finflow_raw/"
-    f"finflow_snowflake_export/{table_name}"
-)
-
-(
-    df.coalesce(1)
-    .write
-    .mode("overwrite")
-    .option("header", "true")
-    .option("encoding", "UTF-8")
-    .csv(export_path)
-)
-
-print("Table:", table_name)
-print("Records:", df.count())
-print("Columns:", df.columns)
-print("Export completed!")
-
-# COMMAND ----------
-
-table_name = "branch_performance"
-
-df = spark.table(
-    f"workspace.finflow_gold.{table_name}"
-)
-
-export_path = (
-    "/Volumes/workspace/default/finflow_raw/"
-    f"finflow_snowflake_export/{table_name}"
-)
-
-(
-    df.coalesce(1)
-    .write
-    .mode("overwrite")
-    .option("header", "true")
-    .option("encoding", "UTF-8")
-    .csv(export_path)
-)
-
-print("Table:", table_name)
-print("Records:", df.count())
-print("Columns:", df.columns)
-print("Export completed!")
-
-# COMMAND ----------
-
-table_name = "daily_transaction_summary"
-
-df = spark.table(
-    f"workspace.finflow_gold.{table_name}"
-)
-
-export_path = (
-    "/Volumes/workspace/default/finflow_raw/"
-    f"finflow_snowflake_export/{table_name}"
-)
-
-(
-    df.coalesce(1)
-    .write
-    .mode("overwrite")
-    .option("header", "true")
-    .option("encoding", "UTF-8")
-    .csv(export_path)
-)
-
-print("Table:", table_name)
-print("Records:", df.count())
-print("Columns:", df.columns)
-print("Export completed!")
-
-# COMMAND ----------
-
-table_name = "loan_portfolio_summary"
-
-df = spark.table(
-    f"workspace.finflow_gold.{table_name}"
-)
-
-export_path = (
-    "/Volumes/workspace/default/finflow_raw/"
-    f"finflow_snowflake_export/{table_name}"
-)
-
-(
-    df.coalesce(1)
-    .write
-    .mode("overwrite")
-    .option("header", "true")
-    .option("encoding", "UTF-8")
-    .csv(export_path)
-)
-
-print("Table:", table_name)
-print("Records:", df.count())
-print("Columns:", df.columns)
-print("Export completed!")
+# MAGIC %md
+# MAGIC ## Snowflake Transfer Flow
+# MAGIC
+# MAGIC The exported CSV files are transferred to Snowflake using the following
+# MAGIC manual workflow:
+# MAGIC
+# MAGIC `Databricks Gold → CSV files → Snowflake Stage → COPY INTO → Snowflake Gold`
+# MAGIC
+# MAGIC The Snowflake loading and validation steps are documented separately.

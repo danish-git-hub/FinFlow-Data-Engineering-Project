@@ -36,7 +36,7 @@ The goal is to build a repeatable data platform that:
 
 ![FinFlow Architecture](architecture/finflow_architecture.png)
 
-**Architecture flow:** CSV/JSON → Databricks Bronze → Silver → Gold → Snowflake → SQL Analytics
+**Architecture flow:** CSV/JSON → Databricks Bronze → Silver → Gold → SQL Analytics; Gold → CSV Export → Snowflake Gold
 
 The pipeline is orchestrated using Databricks Workflows and includes incremental ingestion, data-quality validation, quarantine handling, audit logging, reconciliation, and idempotency validation.
 
@@ -79,10 +79,18 @@ The project uses CSV and JSON files for customers, accounts, branches, loans, tr
 ├── architecture/
 │   └── architecture_design.md
 ├── documentation/
+│   ├── architecture_design.md
 │   ├── implementation_notes.md
 │   └── validation_results.md
 └── screenshots/
-    └── (add selected, sanitized screenshots)
+    ├── 01_bronze_layer.png
+    ├── 02_silver_quarantine.png
+    ├── 03_gold_layer.png
+    ├── 04_sql_analytics.png
+    ├── 05_data_quality_audit.png
+    ├── 06_incremental_pipeline.png
+    ├── 07_snowflake.png
+    └── 08_databricks_workflow.png
 ```
 
 ## Pipeline implementation
@@ -131,7 +139,7 @@ The tested project state reported:
 
 The Gold fact validation reported 108,710 rows, 108,710 distinct transaction IDs and zero duplicate IDs. Two incremental job audit records each reported 100 source records, 100 valid records, zero rejected records, `PASSED` reconciliation and `SUCCESS` pipeline status.
 
-These are results from the tested workspace state, not guaranteed results from a fresh deployment. Screenshots can be added to `screenshots/` after removing account identifiers, emails, secrets and other sensitive information.
+These are results from the tested workspace state, not guaranteed results from a fresh deployment. Selected sanitized screenshots are included in `screenshots/` as implementation evidence.
 
 ## Running the notebooks
 

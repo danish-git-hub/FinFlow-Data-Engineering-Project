@@ -35,16 +35,18 @@ Databricks Volume
 +----------------------------------+
         |
         v
-CSV Export to Databricks Volume
-        |
-        v
-Snowflake Internal Stage
-        |
-        v
-Snowflake FINFLOW_DB.GOLD
-        |
-        v
-SQL Analytics
+Databricks Gold
+    |\
+    | \\
+    |  +--> Databricks SQL Analytics
+    |
+    +--> CSV Export to Databricks Volume
+             |
+             v
+        Snowflake Internal Stage
+             |
+             v
+        Snowflake FINFLOW_DB.GOLD
 ```
 
 ## 3. Medallion Layers

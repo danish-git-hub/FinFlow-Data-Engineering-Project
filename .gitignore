@@ -1,0 +1,31 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Databricks
+.databricks/
+.sparkStaging/
+
+# Secrets and credentials
+.env
+.env.*
+*.pem
+*.key
+secrets/
+credentials/
+
+# Data files
+*.csv
+*.json
+*.jsonl
+*.parquet
+data/
+datasets/
+
+# IDE / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
